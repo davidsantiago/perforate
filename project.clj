@@ -1,5 +1,5 @@
-(defproject perforate "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+(defproject perforate "0.1.0"
+  :description "Painless benchmarking with Leiningen."
   :dependencies [[org.palletops/clojure "1.3.1-SNAPSHOT"]
                  [criterium "0.2.1-SNAPSHOT"]]
   :eval-in :leiningen

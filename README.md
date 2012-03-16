@@ -1,4 +1,4 @@
-# perfidy
+# perforate
 
 I'm a Leiningen plugin. I sure don't do much.
 

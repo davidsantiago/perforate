@@ -1,3 +1,6 @@
-(defproject perfidy "0.1.0-SNAPSHOT"
+(defproject perforate "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
-  :dependencies [[clojure "1.2.1"]])
+  :dependencies [[org.palletops/clojure "1.3.1-SNAPSHOT"]
+                 [criterium "0.2.1-SNAPSHOT"]]
+  :eval-in :leiningen
+  :perforate {:environments [{:namespaces [perforate.benchmarks.core]}]})

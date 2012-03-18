@@ -11,6 +11,11 @@
         perforate-profile (merge perforate-default-source-path-profile
                                  (get-in project
                                          [:profiles :perforate]))
+        ;; We remove the source-paths key from the profile, so that we can use
+        ;; older versions from a JAR and not have the current source override
+        ;; them on the classpath. Environment profiles can add a source-path
+        ;; back in, since they get merged in afterwards.
+        project (dissoc project :source-paths)
         ;; Project should have the perforate profile added for all that follows.
         project (project/merge-profile project perforate-profile)
         environments (:environments perforate-options)]

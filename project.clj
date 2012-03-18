@@ -1,6 +1,6 @@
-(defproject perforate "0.1.0"
+(defproject perforate "0.1.1"
   :description "Painless benchmarking with Leiningen."
-  :dependencies [[org.palletops/clojure "1.3.1-SNAPSHOT"]
-                 [criterium "0.2.1-SNAPSHOT"]]
+  :dependencies [[org.clojure/clojure "1.4.0-beta5"]
+                 [criterium "0.2.0"]]
   :eval-in :leiningen
   :perforate {:environments [{:namespaces [perforate.benchmarks.core]}]})

@@ -1,11 +1,16 @@
 # perforate
 
-Painless benchmarking with Leiningen.
+Painless benchmarking with
+[Leiningen](https://github.com/technomancy/leiningen) and
+[Criterium](https://github.com/hugoduncan/criterium).
 
 ## Usage
 
 Perforate is a plugin for Leiningen 2 that makes it easy to write and
-run benchmarks, much like the `test` task built into Leiningen.
+run benchmarks, much like the `test` task built into Leiningen. The
+benchmarking is done with Hugo Duncan's
+[Criterium](https://github.com/hugoduncan/criterium), which is
+carefully designed to overcome common JVM benchmarking pitfalls.
 
 To use perforate, create a directory in the top level of your project
 called "benchmarks". This directory will be added to the classpath
@@ -75,6 +80,13 @@ can create sets of tests that run on multiple versions of Clojure, or
 use older versions of libraries, or use other sets of options from the
 project map.
 
+One thing to note: by default, the source directories are not included
+on the classpath. This allows you to easily work off of JARs
+containing old versions of your project just by including them in the
+dependencies of the profiles you specify. If you want to test the
+current version, just make a profile containing a `:source-paths` key
+which contains the "src/" directory (or wherever your source is).
+
 ### Setup and Cleanup
 
 In the above examples, we used the `bench-fn` macro to create a simple
@@ -113,6 +125,73 @@ interested in. Note that the function that returns the benchmarkable
 function actually returns a vector with the function in it. You can
 return a second function in that vector, and that function will be
 called after the benchmark is completed to do cleanup.
+
+## An Example
+
+Suppose the project map contains the following keys:
+
+```
+:dependencies [[org.clojure/clojure "1.3.0"]
+               [perforate "0.1.0-SNAPSHOT"]]
+  :plugins [[perforate "0.1.0"]]
+  :profiles {:current {:source-paths ["src/"]}
+             :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
+             :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
+             :version1 {:dependencies [[myproject "1.0.0"]]}
+             :version2 {:dependencies [[myproject "2.0.0"]]}}
+  :perforate {:environments [{:profiles [:clj1.3 :version1]
+                              :namespaces [myproject.benchmarks.core]}
+                             {:profiles [:clj1.3 :version2]
+                              :namespaces [myproject.benchmarks.core]}
+                             {:profiles [:clj1.4 :current]
+                              :namespaces [myproject.benchmarks.core]}]}
+```
+
+A run could look like this:
+
+```
+David$ lein2 perforate
+Benchmarking profiles:  [:clj1.3 :version1]
+======================
+Benchmark:  Test Speed
+----------
+Benchmark Case: :default
+Evaluation count             : 120
+             Execution time mean : 793.924842 ms  95.0% CI: (793.842767 ms, 793.975717 ms)
+    Execution time std-deviation : 11.865390 ms  95.0% CI: (11.814311 ms, 11.917502 ms)
+         Execution time lower ci : 780.498500 ms  95.0% CI: (780.498500 ms, 780.498500 ms)
+         Execution time upper ci : 809.372500 ms  95.0% CI: (809.368000 ms, 809.372500 ms)
+
+Benchmarking profiles:  [:clj1.3 :version2]
+======================
+Benchmark:  Test Speed
+----------
+Benchmark Case: :default
+Evaluation count             : 120
+             Execution time mean : 637.975817 ms  95.0% CI: (637.931333 ms, 638.011125 ms)
+    Execution time std-deviation : 8.807448 ms  95.0% CI: (8.771608 ms, 8.859762 ms)
+         Execution time lower ci : 627.351225 ms  95.0% CI: (627.351225 ms, 627.353000 ms)
+         Execution time upper ci : 649.712000 ms  95.0% CI: (649.712000 ms, 649.713975 ms)
+
+Benchmarking profiles:  [:clj1.4 :current]
+======================
+Benchmark:  Test Speed
+----------
+Benchmark Case: :default
+Evaluation count             : 120
+             Execution time mean : 633.556467 ms  95.0% CI: (633.515842 ms, 633.607392 ms)
+    Execution time std-deviation : 9.972554 ms  95.0% CI: (9.914351 ms, 10.055073 ms)
+         Execution time lower ci : 622.291500 ms  95.0% CI: (622.291500 ms, 622.291500 ms)
+         Execution time upper ci : 647.861000 ms  95.0% CI: (647.861000 ms, 647.887350 ms)
+
+Found 2 outliers in 60 samples (3.3333 %)
+	low-severe	 2 (3.3333 %)
+ Variance from outliers : 1.6389 % Variance is slightly inflated by outliers
+```
+
+## News
+
+* Released version 0.1.1 with some bug fixes.
 
 ## License
 

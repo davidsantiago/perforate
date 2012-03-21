@@ -5,8 +5,7 @@
   (:use [bultitude.core :only [namespaces-on-classpath]]))
 
 (def perforate-default-source-path-profile
-  {:source-paths ["benchmarks/"]
-   :dependencies '[[perforate "0.1.2-SNAPSHOT"]]})
+  {:source-paths ["benchmarks/"]})
 
 (defn benchmark-namespaces
   []
@@ -15,14 +14,27 @@
     :classpath
     (map io/file (:source-paths perforate-default-source-path-profile)))))
 
+(defn locate-perforate-in-project
+  "Given a project map, find the perforate entry in the :plugins key, so we can
+   figure out what version we are."
+  [project]
+  ;; Either this is running as a plugin, or this file is on the classpath. In
+  ;; the former case, this should succeed, in the latter, it is unnecessary, and
+  ;; the nil return value will get merged harmnessly away in the project map.
+  (or (last (filter #(or (= (first %) 'perforate)
+                         (= (first %) 'perforate/perforate))
+                    (:plugins project)))))
+
 (defn perforate
   "Run the performance tests in the benchmarks/ dir."
   [project & args]
   (let [perforate-options (:perforate project)
         environments (:environments perforate-options ::no-environments)
         has-environments (not= environments ::no-environments)
-
+        perforate-dep (locate-perforate-in-project project)
         perforate-profile (merge perforate-default-source-path-profile
+                                 (if perforate-dep
+                                   {:dependencies [perforate-dep]})
                                  (get-in project
                                          [:profiles :perforate]))
         ;; We remove the source-paths key from the profile, so that we can use

@@ -21,9 +21,9 @@
   ;; Either this is running as a plugin, or this file is on the classpath. In
   ;; the former case, this should succeed, in the latter, it is unnecessary, and
   ;; the nil return value will get merged harmnessly away in the project map.
-  (or (last (filter #(or (= (first %) 'perforate)
-                         (= (first %) 'perforate/perforate))
-                    (:plugins project)))))
+  (last (filter #(or (= (first %) 'perforate)
+                     (= (first %) 'perforate/perforate))
+                (:plugins project))))
 
 (defn perforate
   "Run the performance tests in the benchmarks/ dir."

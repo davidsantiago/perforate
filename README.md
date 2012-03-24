@@ -18,113 +18,150 @@ when perforate runs, and all the specified tests inside it will be
 run. Again, you can think of it as being very similar to the "test/"
 directory used by the test task.
 
-In perforate, a benchmark is an abstract notion of a task, some goal
-of interest that you are interested in learning about. Each benchmark
-can have any number of cases, which are concrete implementations of
-the task of interest. By implementing more than one case per
-benchmark, you can compare the performance of different approaches to
-implementing a given task. When you run perforate, the report that it
-generates will group all of the cases in a given benchmark together to
-make it easy to compare them.
+When you are trying to learn about the performance of some code, you
+are typically focused on specific tasks or goals that you would like
+the code to perform. You are also interested in the performance
+characteristics of one or more different ways of accomplishing that
+goal. Perforate is organized around these two concepts: *goals* are
+the abstract goal that you wish to test various implementations of,
+while *cases* are tests of the specific implementations. When you run
+the perforate task, the report that it generates will group all of the
+cases in a given goal together to make it easy to compare them.
 
-Benchmarks and cases are simple maps that perforate examines to figure
-out what tests to perform. The `perforate.core` namespace defines
-functions and macros that make it easy to generate those maps. For
-example, suppose there is a file in
-benchmarks/myproject/simple_bench.clj:
+The `perforate.core` namespace defines functions and macros that make
+it easy to define goals and cases. For example, suppose there is a file
+in benchmarks/myproject/simple_bench.clj:
 
 ```
 (ns myproject.simple-bench
   (:use perforate.core))
   
-(def simple-benchmark
-  (benchmark "A simple benchmark."
-             :cases [(benchmark-case :really-simple
-                                     (bench-fn [] (+ 1 1)))
-                     (benchmark-case "Slightly less simple"
-                                     (bench-fn [] (+ 1 1 1)))]))
+(defgoal simple-bench "A simple benchmark.")
+
+(defcase simple-bench :really-simple
+  [] (+ 1 1))
+  
+(defcase simple-bench :slightly-less-simple
+  [] (+ 1 1 1))
 ```
 
-In this example, a benchmark is created and assigned to the
-`simple-benchmark` variable. It has two cases, `:really-simple` and
-`"Slightly less simple"`, which shows that you can identify the cases
-with pretty much any object you'd like. The `bench-fn` generates a
-function that is called by the benchmark library, that runs its body.
+Here we defined a simple benchmark called simple-bench and gave it a
+doc string. We also defined two cases, :really-simple and
+:slightly-less-simple. As you can see, goals are "open" in the sense
+that you can add as many cases to a given goal as you'd like, or even
+spread them across namespaces. There is some similarity between
+defgoal/defcase and defmulti/defmethod.
 
-In order to know which benchmarks to run, you should add a
-`:perforate` key to your project map. The value of this key should be
-a map. The key `:environments` will hold a sequence of test
-environments the plugin should run when it is called. For now, and
-environment consists of a map of two key/value pairs. The first value,
-`:profiles`, should be a sequence of profiles from the project.clj
+By default, perforate will run all benchmarks it finds in the
+"benchmarks/" directory of your project. But you can get much finer
+control by adding a `:perforate` key to your project map. The value of
+this key should be a map. The key `:environments` will hold a sequence
+of test environments the plugin should run when it is called. An
+environment consists of a map of key/value pairs. When present, the
+`:profiles` key should be a sequence of profiles from the project.clj
 that should be merged into the project map during this run of the
-benchmark. The second value, `:namespaces`, should contain a sequence
-of symbols naming the namespaces to run. For example, suppose the
+benchmark. When present, the `:namespaces` key, should contain a
+sequence of symbols naming the namespaces to run. You can also add a
+`:name` key to give each environment a name. For example, suppose the
 project.clj file contains the following:
 
 ```
-:perforate {:environments [{:profiles [:a1 :b1]
+:perforate {:environments [{:name :a1b1
+                            :profiles [:a1 :b1]
                             :namespaces [myproject.simple-bench myproject.complex-bench]}
-                           {:profiles [:a2 :b2]
+                           {:name :a2b2
+                            :profiles [:a2 :b2]
                             :namespaces [myproject.simple-bench myproject.trivial-bench]}]}
 ```
 
 As you can see in this example, we have two environments, each using
-two different profiles. The first will run two sets of benchmarks, and
-the second will run the simple-bench set, but will run a different
-set, perhaps because in this environment inadequate or older versions
-of libraries are being tested.
+two different profiles. The two environments will run a shared set of
+benchmarks and a set of benchmarks specific to that environment,
+perhaps because in the environment inadequate or older versions of
+libraries are being tested.
 
 Using the environments in combination with Leiningen 2's profiles, you
 can create sets of tests that run on multiple versions of Clojure, or
 use older versions of libraries, or use other sets of options from the
-project map.
+project map. By naming environments on the command line when you run
+the perforate task, you can restrict the benchmark run to only the
+environments you specified.
 
 One thing to note: by default, the source directories are not included
 on the classpath. This allows you to easily work off of JARs
 containing old versions of your project just by including them in the
 dependencies of the profiles you specify. If you want to test the
-current version, just make a profile containing a `:source-paths` key
-which contains the "src/" directory (or wherever your source is).
+current version from the source directory, just make a profile
+containing a `:source-paths` key which contains the "src/" directory
+(or wherever your source is).
 
 ### Setup and Cleanup
-
-In the above examples, we used the `bench-fn` macro to create a simple
-test function. Why not use a regular function? You could do that, but
-benchmark-case is not expecting a simple function to run directly, it
-is expecting a function that returns the function to run. The
-`bench-fn` macro creates a function to return a function that performs
-the body you give it. It is a simple way to express the degenerate
-case of the setup/cleanup feature.
 
 Many benchmarks require some work to set up the environment in which
 they run, and some also require cleanup work to remove any byproducts
 of the tasks being tested or the setup phase itself. You can specify a
-function to run as a setup phase by passing it as an argument to
-`benchmark`:
+function to run as a setup (or cleanup) phase by passing it as an
+argument to `defgoal`:
 
 ```
-(benchmark "A benchmark with a setup phase."
-   :cases [(benchmark-case :after-setup
-                           (fn [a b c] (...add'l setup stuff with a, b, and c...)
-                                       [(fn [] (...do stuff with a, b, and c...))]))]
-   :setup (fn [] ...do stuff... [1 2 3]))
+(defgoal simple-with-setup "A benchmark with a setup phase."
+   :setup (fn [] ...do stuff... [1 2 3])
+   :cleanup (fn [a b c] ...do stuff...)
 ```
 
-Here we manually create the benchmark-case function and this time it
-has arguments. Those arguments are given the values of the return
-value of the setup function, so that they are available to the
-function itself when it runs. The benchmark-case function is always
-called with the results of the setup-phase applied to it, so the
-arguments must be compatible.
+Note how the setup function returns a vector of three values. The
+cleanup function takes three arguments. When the cleanup function is
+called (if there is one), it will have the return value of the setup
+function applied to its arguments. So be sure they match.
 
-Of course, if you do not need to do additional setup with the
-arguments, the `bench-fn` macro is there to make it easy to accept the
-arguments from the setup function and just run the code you are
-interested in. Note that the function that returns the benchmarkable
-function actually returns a vector with the function in it. You can
-return a second function in that vector, and that function will be
-called after the benchmark is completed to do cleanup.
+The return value of the setup function is also passed to your
+benchmark function. Thus, it must have a matching set of arguments in
+the `defcase` arglists, as shown in the following `defcase` for
+`simple-with-setup`:
+
+```
+(defcase simple-with-setup :default
+  [a b c] (+ a b c))
+```
+
+### Under the Hood
+
+In reality, the function that gets benchmarked by criterium always
+takes zero arguments. The `defcase` macro is doing some work behind
+the scenes to give you the arglist in lexical scope while still
+running as a zero-argument function. A case is actually a function
+that returns the function to be benchmarked. The case function accepts
+the setup function's arguments, if any, and returns the function to be
+benchmarked as a closure over the setup function arguments.
+
+Sometimes it's helpful to do some additional case-specific setup on
+those arguments before returning the actual function to be benchmarked
+for the given case. For this, there's the lower-level `defcase*`,
+which takes a single argument: a function that returns the function to
+be benchmarked. This function must have an arglist that matches the
+return value of the setup function, and must return a vector
+containing either one or two functions. The first function is always
+the function be benchmarked; if there is a second function, it is a
+case-specific cleanup function that will be called when that case is
+done being measured. Here is the `simple-with-setup` example as a `defcase*`:
+
+```
+(defcase* simple-with-setup :default2
+  (fn [a b c] [(fn [] (+ a b c))]))
+```
+
+As you can see, this function returns the benchmarkable function in a
+vector, but is otherwise equivalent. In fact, the `defcase` version
+should turn into something quite like this `defcase*` version. The
+main interest in `defcase*` is if there is some case-specific setup or
+cleanup. An example might be
+
+```
+(defcase* simple-with-setup :case-setup
+  (fn [a b c] 
+    (let [d (* a b c)]
+      [(fn [] (+ a b c d))])))
+```
 
 ## An Example
 
@@ -139,11 +176,14 @@ Suppose the project map contains the following keys:
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
              :version1 {:dependencies [[myproject "1.0.0"]]}
              :version2 {:dependencies [[myproject "2.0.0"]]}}
-  :perforate {:environments [{:profiles [:clj1.3 :version1]
+  :perforate {:environments [{:name :version1
+                              :profiles [:clj1.3 :version1]
                               :namespaces [myproject.benchmarks.core]}
-                             {:profiles [:clj1.3 :version2]
+                             {:name :version2
+                              :profiles [:clj1.3 :version2]
                               :namespaces [myproject.benchmarks.core]}
-                             {:profiles [:clj1.4 :current]
+                             {:name :current
+                              :profiles [:clj1.4 :current]
                               :namespaces [myproject.benchmarks.core]}]}
 ```
 
@@ -153,9 +193,9 @@ A run could look like this:
 David$ lein2 perforate
 Benchmarking profiles:  [:clj1.3 :version1]
 ======================
-Benchmark:  Test Speed
+Goal:  Test Speed
 ----------
-Benchmark Case: :default
+Case: :default
 Evaluation count             : 120
              Execution time mean : 793.924842 ms  95.0% CI: (793.842767 ms, 793.975717 ms)
     Execution time std-deviation : 11.865390 ms  95.0% CI: (11.814311 ms, 11.917502 ms)
@@ -164,9 +204,9 @@ Evaluation count             : 120
 
 Benchmarking profiles:  [:clj1.3 :version2]
 ======================
-Benchmark:  Test Speed
+Goal:  Test Speed
 ----------
-Benchmark Case: :default
+Case: :default
 Evaluation count             : 120
              Execution time mean : 637.975817 ms  95.0% CI: (637.931333 ms, 638.011125 ms)
     Execution time std-deviation : 8.807448 ms  95.0% CI: (8.771608 ms, 8.859762 ms)
@@ -175,9 +215,9 @@ Evaluation count             : 120
 
 Benchmarking profiles:  [:clj1.4 :current]
 ======================
-Benchmark:  Test Speed
+Goal:  Test Speed
 ----------
-Benchmark Case: :default
+Case: :default
 Evaluation count             : 120
              Execution time mean : 633.556467 ms  95.0% CI: (633.515842 ms, 633.607392 ms)
     Execution time std-deviation : 9.972554 ms  95.0% CI: (9.914351 ms, 10.055073 ms)
@@ -189,9 +229,36 @@ Found 2 outliers in 60 samples (3.3333 %)
  Variance from outliers : 1.6389 % Variance is slightly inflated by outliers
 ```
 
+If you only wanted to run the `:current` profile, and you wanted Criterium to do faster, less accurate benchmarks, you could run the following command on the command-line, which would result in similar output:
+
+```
+David$ lein2 perforate current --quick
+Benchmarking profiles:  [:clj1.4 :current]
+======================
+WARNING: Final GC required 3.7433766853457424 % of runtime
+WARNING: Final GC required 2.563144804701669 % of runtime
+Goal:  Test Speed
+-----
+Case:  :default
+Evaluation count             : 6
+             Execution time mean : 524.897667 ms  95.0% CI: (524.493000 ms, 525.080167 ms)
+    Execution time std-deviation : 8.663503 ms  95.0% CI: (8.414881 ms, 8.730166 ms)
+         Execution time lower ci : 515.172000 ms  95.0% CI: (515.172000 ms, 515.172000 ms)
+         Execution time upper ci : 534.102250 ms  95.0% CI: (534.102250 ms, 534.102250 ms)
+```
+
 ## News
 
+* Released version 0.2.0, a substantial redesign and rewrite.
+  - Now works without the need to specify environments, thanks to [Hugo Duncan](https://github.com/hugoduncan).
+  - Redesigned to an "open" system modeled on multimethods.
+  - Added command line arguments to the perforate task, so specific environments and options can be specified on the command line.
+
 * Released version 0.1.1 with some bug fixes.
+
+## Contributors
+
+* [Hugo Duncan](https://github.com/hugoduncan)
 
 ## License
 

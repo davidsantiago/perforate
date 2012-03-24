@@ -54,7 +54,7 @@
             action `(do
                       (when (seq '~namespaces)
                         (apply require :reload '~namespaces))
-                      (apply perf/run-benchmarks '~namespaces))]
+                      (perf/run-benchmarks {} '~namespaces))]
         (eval/eval-in-project project
                               action
                               '(require ['perforate.core :as 'perf]))))))

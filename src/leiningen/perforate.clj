@@ -25,6 +25,27 @@
                      (= (first %) 'perforate/perforate))
                 (:plugins project))))
 
+(defn parse-args
+  "Takes the command args as input and returns a vector with two elements. The
+   first is a set of the specified environments (the name key in each
+   environment) and the second is a map of the options given."
+  [args]
+  (let [[environments options] (split-with #(not (.startsWith % "-")) args)]
+    [(into #{} environments)
+     (into {} (map (fn [opt-str] (vector (keyword (apply str
+                                                         (filter #(not= \- %)
+                                                                 opt-str)))
+                                         true)) options))]))
+
+(defn run-environment?
+  "Given the specified environments set and a given environment, return true
+   if we should run the benchmark. If the specified-environments set is empty,
+   then all environments passed as the second arg will be run."
+  [specified-environments environment]
+  (if (empty? specified-environments)
+    true
+    (specified-environments (name (:name environment))))) ;; compare as string.
+
 (defn perforate
   "Run the performance tests in the benchmarks/ dir."
   [project & args]
@@ -44,17 +65,19 @@
         project (if has-environments (dissoc project :source-paths) project)
         ;; Project should have the perforate profile added for all that follows.
         project (project/merge-profile project perforate-profile)
+        [specified-environments options] (parse-args args)
         environments (if has-environments
                        environments
                        [{:namespaces (benchmark-namespaces)}])]
-    (doseq [{:keys [profiles namespaces]} environments]
-      (println "Benchmarking profiles: " profiles)
-      (println "======================")
-      (let [project (project/merge-profiles project profiles)
-            action `(do
-                      (when (seq '~namespaces)
-                        (apply require :reload '~namespaces))
-                      (perf/run-benchmarks {} '~namespaces))]
-        (eval/eval-in-project project
-                              action
-                              '(require ['perforate.core :as 'perf]))))))
+    (doseq [{:keys [name profiles namespaces] :as environment} environments]
+      (when (run-environment? specified-environments environment)
+        (println "Benchmarking profiles: " profiles)
+        (println "======================")
+        (let [project (project/merge-profiles project profiles)
+              action `(do
+                        (when (seq '~namespaces)
+                          (apply require :reload '~namespaces))
+                        (perf/run-benchmarks ~options '~namespaces))]
+          (eval/eval-in-project project
+                                action
+                                '(require ['perforate.core :as 'perf])))))))

@@ -112,30 +112,15 @@
    benchmark results. The setup-return argument must be the return value of
    the goal's setup function.
 
-   Options:
+   Options (passed in a map):
 
        :quick  - Pass true to run a faster, less accurate test."
-  [test-spawn-fn setup-return & {:keys [quick]}]
+  [test-spawn-fn setup-return {:keys [quick]}]
   (let [[test-fn & cleanup-fn] (apply test-spawn-fn setup-return)
         bench-result (benchmark-function test-fn quick)]
     (when cleanup-fn
       (apply (first cleanup-fn) setup-return))
     bench-result))
-
-#_(defn run-benchmarks
-  "Given a list of namespaces, runs all the benchmarks they contain."
-  [& namespaces]
-  (doseq [ns namespaces]
-    (let [cases (filter #(:perforate/benchmark (meta %))
-                             (map deref (vals (ns-interns (the-ns ns)))))]
-      (doseq [benchmark benchmarks]
-        (println "Benchmark: " (:doc (meta benchmark)))
-        (println "----------")
-        (let [benchmark-results (run-benchmark benchmark)]
-          (doseq [[case-name case-results] benchmark-results]
-            (println "Benchmark Case:" case-name)
-            (crit/report-result case-results))))))
-  (println ""))
 
 (defn run-benchmarks
   "Given a list of namespaces, runs all the benchmarks they contain and reports
@@ -163,7 +148,8 @@
                              case-results (for [case (get goal-case-map goal)]
                                             (let [res (run-benchmark
                                                        case
-                                                       setup-return)]
+                                                       setup-return
+                                                       options-map)]
                                               [case res]))]
                          (when (:cleanup goal)
                            (apply (:cleanup goal) setup-return))

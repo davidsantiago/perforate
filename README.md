@@ -169,8 +169,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.1.0-SNAPSHOT"]]
-  :plugins [[perforate "0.1.0"]]
+               [perforate "0.2.0"]]
+  :plugins [[perforate "0.2.0"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}

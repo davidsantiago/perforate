@@ -80,7 +80,7 @@
         [arg-list body & _] opts]
     `(defcase* ~goal-name ~variant-name
        ~@(if doc-string [doc-string]) ;; So doc-string disappears when nil.
-       (fn ~arg-list ~body))))
+       (fn [] [(fn ~arg-list ~body)]))))
 
 (defmacro bench-fn
   "Convenience macro to generate a defcase* spawn function when there is

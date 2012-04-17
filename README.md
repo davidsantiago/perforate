@@ -170,7 +170,7 @@ Suppose the project map contains the following keys:
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
                [perforate "0.2.0"]]
-  :plugins [[perforate "0.2.0"]]
+  :plugins [[perforate "0.2.1"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -248,6 +248,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.2.1, which fixes the (previously) completely broken defcase macro.
 
 * Released version 0.2.0, a substantial redesign and rewrite.
   - Now works without the need to specify environments, thanks to [Hugo Duncan](https://github.com/hugoduncan).

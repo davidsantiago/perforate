@@ -82,6 +82,19 @@
        ~@(if doc-string [doc-string]) ;; So doc-string disappears when nil.
        (fn [] [(fn ~arg-list ~body)]))))
 
+(defmacro defcase-fn
+  "([goal-name variant-name doc-string? init-args body])
+   Works like defcase, but the arglist is for the return value of the setup
+   function, and the return value must be the function to be benchmarked."
+  [goal-name variant-name & opts]
+  (let [[doc-string opts] (if (string? (first opts))
+                            [(first opts) (rest opts)]
+                            [nil opts])
+        [init-arg-list body & _] opts]
+    `(defcase* ~goal-name ~variant-name
+       ~@(if doc-string [doc-string])  ;; So doc-string disappears when nil.
+       (fn ~init-arg-list [~body]))))
+
 (defmacro bench-fn
   "Convenience macro to generate a defcase* spawn function when there is
    no processing required. These two are equivalent:

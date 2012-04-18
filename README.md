@@ -169,8 +169,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.2.0"]]
-  :plugins [[perforate "0.2.1"]]
+               [perforate "0.2.2"]]
+  :plugins [[perforate "0.2.2"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -248,6 +248,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.2.2, which adds the defcase-fn convenience macro. Should be nicer to use instead of defcase* for cases with no cleanup functions.
 
 * Released version 0.2.1, which fixes the (previously) completely broken defcase macro.
 

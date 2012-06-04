@@ -249,6 +249,8 @@ Evaluation count             : 6
 
 ## News
 
+* Released version 0.2.3, which updates for latest Leiningen 2 preview versions.
+
 * Released version 0.2.2, which adds the defcase-fn convenience macro. Should be nicer to use instead of defcase* for cases with no cleanup functions.
 
 * Released version 0.2.1, which fixes the (previously) completely broken defcase macro.

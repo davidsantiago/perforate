@@ -64,7 +64,7 @@
         ;; back in, since they get merged in afterwards.
         project (if has-environments (dissoc project :source-paths) project)
         ;; Project should have the perforate profile added for all that follows.
-        project (project/merge-profile project perforate-profile)
+        project (project/merge-profiles project [perforate-profile])
         [specified-environments options] (parse-args args)
         environments (if has-environments
                        environments

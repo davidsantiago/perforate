@@ -156,16 +156,16 @@
         (into {}
               (apply concat
                      (for [goal goals]
-                       (let [setup-return (if (:setup goal)
-                                            ((:setup goal)))
+                       (let [setup-return (if (:setup @goal)
+                                            ((:setup @goal)))
                              case-results (for [case (get goal-case-map goal)]
                                             (let [res (run-benchmark
                                                        case
                                                        setup-return
                                                        options-map)]
                                               [case res]))]
-                         (when (:cleanup goal)
-                           (apply (:cleanup goal) setup-return))
+                         (when (:cleanup @goal)
+                           (apply (:cleanup @goal) setup-return))
                          case-results))))]
     ;; Now we have the results, so we report them.
     (doseq [goal goals]

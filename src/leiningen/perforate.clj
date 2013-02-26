@@ -75,6 +75,7 @@
         (println "======================")
         (let [project (project/merge-profiles project profiles)
               action `(do
+                        (set! *warn-on-reflection* true)
                         (when (seq '~namespaces)
                           (apply require :reload '~namespaces))
                         (perf/run-benchmarks ~options '~namespaces))]

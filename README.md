@@ -169,8 +169,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.2.2"]]
-  :plugins [[perforate "0.2.2"]]
+               [perforate "0.2.4"]]
+  :plugins [[perforate "0.2.4"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -248,6 +248,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.2.4, which updates to the latest version of Criterium and runs all benchmarks with *warn-on-reflection* set to true.
 
 * Released version 0.2.3, which updates for latest Leiningen 2 preview versions.
 

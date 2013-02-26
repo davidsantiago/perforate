@@ -148,25 +148,27 @@
                                                    (:perforate/goal-for-case
                                                     (meta %)))
                                                cases)]))
+        fixtures (reduce comp (fn [f] (f)) (:fixtures options-map))
         ;; Going to loop through the goals, and then loop through each case for
         ;; each goal. For each goal, we'll run the setup, then all the cases,
         ;; and then any cleanup. Then we collect up all those results into a map
         ;; of cases to results.
-        case-result-map
-        (into {}
-              (apply concat
-                     (for [goal goals]
-                       (let [setup-return (if (:setup @goal)
-                                            ((:setup @goal)))
-                             case-results (for [case (get goal-case-map goal)]
-                                            (let [res (run-benchmark
-                                                       case
-                                                       setup-return
-                                                       options-map)]
-                                              [case res]))]
-                         (when (:cleanup @goal)
-                           (apply (:cleanup @goal) setup-return))
-                         case-results))))]
+        case-result-map-fn
+        #(into {}
+               (apply concat
+                      (for [goal goals]
+                        (let [setup-return (if (:setup @goal)
+                                             ((:setup @goal)))
+                              case-results (for [case (get goal-case-map goal)]
+                                             (let [res (run-benchmark
+                                                        case
+                                                        setup-return
+                                                        options-map)]
+                                               [case res]))]
+                          (when (:cleanup @goal)
+                            (apply (:cleanup @goal) setup-return))
+                          case-results))))
+        case-result-map (fixtures case-result-map-fn)]
     ;; Now we have the results, so we report them.
     (doseq [goal goals]
       (println "Goal: " (:doc (meta goal)))

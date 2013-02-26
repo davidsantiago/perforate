@@ -71,7 +71,10 @@
                        [{:namespaces (benchmark-namespaces)}])]
     (doseq [{:keys [name profiles namespaces] :as environment} environments]
       (when (run-environment? specified-environments environment)
-        (println "Benchmarking profiles: " profiles)
+        (when (> (count environments) 1)
+          (println "Benchmarking environment: " (:name environment)))
+        (when (seq profiles)
+          (println "Benchmarking profiles: " profiles))
         (println "======================")
         (let [project (project/merge-profiles project profiles)
               action `(do

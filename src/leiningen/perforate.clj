@@ -69,7 +69,8 @@
         environments (if has-environments
                        environments
                        [{:namespaces (benchmark-namespaces)}])]
-    (doseq [{:keys [name profiles namespaces] :as environment} environments]
+    (doseq [{:keys [name profiles namespaces fixtures] :as environment}
+            environments]
       (when (run-environment? specified-environments environment)
         (println "Benchmarking profiles: " profiles)
         (println "======================")
@@ -81,4 +82,8 @@
                         (perf/run-benchmarks ~options '~namespaces))]
           (eval/eval-in-project project
                                 action
-                                '(require ['perforate.core :as 'perf])))))))
+                                `(require
+                                  ['~'perforate.core :as '~'perf]
+                                  ~@(map
+                                     #(list 'quote (symbol (namespace %)))
+                                     fixtures))))))))

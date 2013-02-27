@@ -1,5 +1,7 @@
 (ns perforate.core
-  (:require [criterium.core :as crit]))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as string]
+            [criterium.core :as crit]))
 
 
 (defn universal-reducer
@@ -135,6 +137,68 @@
       (apply (first cleanup-fn) setup-return))
     bench-result))
 
+(defmulti print-results
+  "Print results in the specified format."
+  (fn [format goal-case-map case-results-map goals] format))
+
+(defmethod print-results :criterium
+  [_ goal-case-map case-result-map goals]
+  (doseq [goal goals]
+      (println "Goal: " (:doc (meta goal)))
+      (println "-----")
+      (doseq [case (get goal-case-map goal)]
+        (println "Case: " (:perforate/variant (meta case)))
+        (crit/report-result (get case-result-map case))
+        (println ""))))
+
+(defn case-seq
+  "Build a sequence of maps, one for each case, with :goal and :case values."
+  [goal-case-map case-result-map goals]
+  (for [goal goals
+        case (get goal-case-map goal)
+        :let [goal-name (:doc (meta goal))
+              case-name (:perforate/variant (meta case))]]
+    (-> (get case-result-map case)
+        (assoc :goal goal-name
+               :case case-name)
+        (update-in [:options] dissoc :reduce-with))))
+
+(def simple-output-keys
+  [:goal :case :mean :upper-q :lower-q :execution-count :sample-count])
+
+(defmethod print-results :table
+  [_ goal-case-map case-result-map goals]
+  (let [f (ns-resolve 'clojure.pprint 'print-table)]
+    (if f
+      (f
+       simple-output-keys
+       (map
+        #(-> %
+             (dissoc :os-details :options :runtime-details)
+             (update-in [:mean] first)
+             (update-in [:upper-q] first)
+             (update-in [:lower-q] first))
+        (case-seq goal-case-map case-result-map goals)))
+      (println "Table format output requires clojure 1.4+"))))
+
+(defmethod print-results :edn
+  [_ goal-case-map case-result-map goals]
+  (pprint/pprint (case-seq goal-case-map case-result-map goals)))
+
+(defmethod print-results :csv
+  [_ goal-case-map case-result-map goals]
+  (let [results (case-seq goal-case-map case-result-map goals)
+        hdrs [:goal :case :mean :upper-q :lower-q :execution-count
+              :sample-count]]
+    (println (string/join "," (map name hdrs)))
+    (doseq [result results
+            :let [result (-> result
+                             (dissoc :os-details :options :runtime-details)
+                             (update-in [:mean] first)
+                             (update-in [:upper-q] first)
+                             (update-in [:lower-q] first))]]
+      (println (string/join "," (map result hdrs))))))
+
 (defn run-benchmarks
   "Given a list of namespaces, runs all the benchmarks they contain and reports
    the results."
@@ -170,10 +234,8 @@
                           case-results))))
         case-result-map (fixtures case-result-map-fn)]
     ;; Now we have the results, so we report them.
-    (doseq [goal goals]
-      (println "Goal: " (:doc (meta goal)))
-      (println "-----")
-      (doseq [case (get goal-case-map goal)]
-        (println "Case: " (:perforate/variant (meta case)))
-        (crit/report-result (get case-result-map case))
-        (println "")))))
+    (doseq [fmt (or
+                 (seq
+                  (filter #{:edn :csv :criterium :table} (keys options-map)))
+                 [:criterium])]
+      (print-results fmt goal-case-map case-result-map goals))))

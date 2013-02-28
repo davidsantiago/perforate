@@ -1,7 +1,8 @@
 (ns perforate.core
   (:require [clojure.pprint :as pprint]
             [clojure.string :as string]
-            [criterium.core :as crit]))
+            [criterium.core :as crit]
+            [clojure-csv.core :as csv]))
 
 
 (defn universal-reducer
@@ -164,7 +165,8 @@
         (update-in [:options] dissoc :reduce-with))))
 
 (def simple-output-keys
-  [:goal :case :mean :upper-q :lower-q :execution-count :sample-count])
+  [:goal :case :mean :variance :upper-q :lower-q
+   :execution-count :sample-count])
 
 (defmethod print-results :table
   [_ goal-case-map case-result-map goals]
@@ -176,6 +178,7 @@
         #(-> %
              (dissoc :os-details :options :runtime-details)
              (update-in [:mean] first)
+             (update-in [:variance] first)
              (update-in [:upper-q] first)
              (update-in [:lower-q] first))
         (case-seq goal-case-map case-result-map goals)))
@@ -187,17 +190,16 @@
 
 (defmethod print-results :csv
   [_ goal-case-map case-result-map goals]
-  (let [results (case-seq goal-case-map case-result-map goals)
-        hdrs [:goal :case :mean :upper-q :lower-q :execution-count
-              :sample-count]]
-    (println (string/join "," (map name hdrs)))
+  (let [results (case-seq goal-case-map case-result-map goals)]
+    (print (csv/write-csv [(map name simple-output-keys)]))
     (doseq [result results
             :let [result (-> result
                              (dissoc :os-details :options :runtime-details)
                              (update-in [:mean] first)
+                             (update-in [:variance] first)
                              (update-in [:upper-q] first)
                              (update-in [:lower-q] first))]]
-      (println (string/join "," (map result hdrs))))))
+      (print (csv/write-csv [(map (comp str result) simple-output-keys)])))))
 
 (defn run-benchmarks
   "Given a list of namespaces, runs all the benchmarks they contain and reports

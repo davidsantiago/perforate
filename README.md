@@ -124,6 +124,31 @@ the `defcase` arglists, as shown in the following `defcase` for
   [a b c] (+ a b c))
 ```
 
+Starting in version 0.3.0, you can also specify clojure.test-style fixtures in your perforate options. Fixtures are useful for setup work that is specific to an environment and not necessarily a goal. For example, your perforate options might look like
+
+```
+{:environments
+  [{:name :array
+    :namespaces [myproject.implementation]
+    :fixtures [myproject.implementation.array/with-array]}
+   {:name :volatile
+    :namespaces [myproject.implementation]
+    :fixtures [myproject.implementation.type/with-volatile]}
+   {:name :unsynchronized
+    :namespaces [myproject.implementation]
+    :fixtures [myproject.implementation.type/with-unsynchronized]}]}
+```
+
+In this example, the same exact tests are run (those in the namespace myproject.implementation), but the fixtures such as `with-array` could be something that swaps out the implementation used, as in 
+
+```
+(defn with-array [f] 
+  (with-redefs [myproject.core/execute-expr-core execute-expr-core-with-array] 
+    (f)))
+```
+
+Or perhaps some parameter of interest can be dynamically bound to different values using fixtures, to see how the parameter causes performance to vary. However, this last example illustrates the need for caution when using fixtures: certain dynamic constructs like a dynamic variable, when used in a very tight inner loop function that you are attempting to measure, could result in misleading results. You should probably not reach for fixtures as your first option for running tests, but if they are a good fit, use a little extra caution to make sure you know what you are measuring when you do.
+
 ### Under the Hood
 
 In reality, the function that gets benchmarked by criterium always
@@ -169,8 +194,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.2.4"]]
-  :plugins [[perforate "0.2.4"]]
+               [perforate "0.3.0"]]
+  :plugins [[perforate "0.3.0"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -248,6 +273,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.3.0, which adds support for outputting benchmark results in new formats: EDN, CSV, and table. Also adds support for fixtures. Thanks to [Hugo Duncan](http://github.com/hugoduncan).
 
 * Released version 0.2.4, which updates to the latest version of Criterium and runs all benchmarks with *warn-on-reflection* set to true.
 

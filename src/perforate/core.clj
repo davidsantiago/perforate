@@ -83,7 +83,7 @@
         [arg-list body & _] opts]
     `(defcase* ~goal-name ~variant-name
        ~@(if doc-string [doc-string]) ;; So doc-string disappears when nil.
-       (fn [] [(fn ~arg-list ~body)]))))
+       (fn ~arg-list [(fn [] ~body)]))))
 
 (defmacro defcase-fn
   "([goal-name variant-name doc-string? init-args body])
@@ -113,8 +113,11 @@
   "Benchmark the given function, quick or not."
   [func quick?]
   (if quick?
-    (crit/quick-benchmark (func) :reduce-with universal-reducer)
-    (crit/benchmark (func) :reduce-with universal-reducer)))
+    (crit/quick-benchmark (func)
+                          (merge crit/*default-quick-bench-opts*
+                                 {:samples 12
+                                  :warmup-jit-period crit/*warmup-jit-period*}))
+    (crit/benchmark (func) crit/*default-benchmark-opts*)))
 
 #_(defn summarize-benchmark-results
   "Given a map returned from a criterium benchmark run, print out a nice

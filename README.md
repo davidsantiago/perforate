@@ -194,8 +194,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.3.0"]]
-  :plugins [[perforate "0.3.0"]]
+               [perforate "0.3.1"]]
+  :plugins [[perforate "0.3.1"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -273,6 +273,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.3.1, which fixes a bug that prevented `defcase` from working correctly when the argument list was not empty.
 
 * Released version 0.3.0, which adds support for outputting benchmark results in new formats: EDN, CSV, and table. Also adds support for fixtures. Thanks to [Hugo Duncan](http://github.com/hugoduncan).
 

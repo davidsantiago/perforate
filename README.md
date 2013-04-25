@@ -194,8 +194,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.3.1"]]
-  :plugins [[perforate "0.3.1"]]
+               [perforate "0.3.2"]]
+  :plugins [[perforate "0.3.2"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -273,6 +273,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.3.2, which updates the version of Criterium used (thus fixing a problem with the previous version attempting to use an incompatible one).
 
 * Released version 0.3.1, which fixes a bug that prevented `defcase` from working correctly when the argument list was not empty.
 

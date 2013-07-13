@@ -4,15 +4,15 @@
             [clojure.java.io :as io])
   (:use [bultitude.core :only [namespaces-on-classpath]]))
 
-(def perforate-default-source-path-profile
-  {:source-paths ["benchmarks/"]})
+(defn get-benchmark-sourcepaths [project]
+  (get-in project [:perforate :source-paths] ["benchmarks/"]))
 
 (defn benchmark-namespaces
-  []
+  [project]
   (sort
-   (namespaces-on-classpath
-    :classpath
-    (map io/file (:source-paths perforate-default-source-path-profile)))))
+    (namespaces-on-classpath
+      :classpath
+      (map io/file (get-benchmark-sourcepaths project)))))
 
 (defn locate-perforate-in-project
   "Given a project map, find the perforate entry in the :plugins key, so we can
@@ -47,13 +47,14 @@
     (specified-environments (name (:name environment))))) ;; compare as string.
 
 (defn perforate
-  "Run the performance tests in the benchmarks/ dir."
+  "Run the performance tests in the perforate
+   source-paths dir (default \"benchmarks/\")."
   [project & args]
   (let [perforate-options (:perforate project)
         environments (:environments perforate-options ::no-environments)
         has-environments (not= environments ::no-environments)
         perforate-dep (locate-perforate-in-project project)
-        perforate-profile (merge perforate-default-source-path-profile
+        perforate-profile (merge {:source-paths (get-benchmark-sourcepaths project)} 
                                  (if perforate-dep
                                    {:dependencies [perforate-dep]})
                                  (get-in project
@@ -68,7 +69,7 @@
         [specified-environments options] (parse-args args)
         environments (if has-environments
                        environments
-                       [{:namespaces (benchmark-namespaces)}])]
+                       [{:namespaces (benchmark-namespaces project)}])]
     (doseq [{:keys [name profiles namespaces fixtures] :as environment}
             environments]
       (when (run-environment? specified-environments environment)

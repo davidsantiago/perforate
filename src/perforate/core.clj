@@ -204,6 +204,17 @@
                              (update-in [:lower-q] first))]]
       (print (csv/write-csv [(map (comp str result) simple-output-keys)])))))
 
+(defn- print-goals [goals]
+  (if (empty? goals)
+    (println (str 
+      "WARNING: No goals found!\n"
+      "Did you place your benchmark sources under \"benchmarks/\" " 
+      "or configure an alternate location as below?\n\n"
+      "   {:perforate {:source-paths [\"src/main/bench/\"]}}\n\n"))
+    (println (apply str 
+      "Perforating the following goals: \n" 
+      (->> goals (map #(-> % meta :name)) (sort) (interpose "\n"))))))
+
 (defn run-benchmarks
   "Given a list of namespaces, runs all the benchmarks they contain and reports
    the results."
@@ -212,6 +223,7 @@
                               (filter #(:perforate/case (meta %))
                                       (vals (ns-interns (the-ns ns))))))
         goals (into #{} (map #(:perforate/goal-for-case (meta %)) cases))
+        _     (print-goals goals)
         goal-case-map (into {} (for [goal goals]
                                  [goal (filter #(= goal
                                                    (:perforate/goal-for-case

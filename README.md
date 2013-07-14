@@ -12,8 +12,11 @@ benchmarking is done with Hugo Duncan's
 [Criterium](https://github.com/hugoduncan/criterium), which is
 carefully designed to overcome common JVM benchmarking pitfalls.
 
-To use perforate, create a directory in the top level of your project
-called "benchmarks". This directory will be added to the classpath
+To use perforate, create a directory in your project containing 
+perforate benchmarking source (see `simple_bench.clj` below). The 
+default directory location is `benchmarks/`, but you can also specify
+an alternative location in your project i.e. `{:perforate {:source-paths
+["src/bench/clojure"]`. This directory will be added to the classpath
 when perforate runs, and all the specified tests inside it will be
 run. Again, you can think of it as being very similar to the "test/"
 directory used by the test task.

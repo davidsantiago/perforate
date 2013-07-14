@@ -15,7 +15,7 @@ carefully designed to overcome common JVM benchmarking pitfalls.
 To use perforate, create a directory in your project containing 
 perforate benchmarking source (see `simple_bench.clj` below). The 
 default directory location is `benchmarks/`, but you can also specify
-an alternative location in your project i.e. `{:perforate {:source-paths
+an alternative location in your project i.e. `{:perforate {:benchmark-paths
 ["src/bench/clojure"]`. This directory will be added to the classpath
 when perforate runs, and all the specified tests inside it will be
 run. Again, you can think of it as being very similar to the "test/"
@@ -197,8 +197,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.3.2"]]
-  :plugins [[perforate "0.3.2"]]
+               [perforate "0.3.3"]]
+  :plugins [[perforate "0.3.3"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -277,6 +277,8 @@ Evaluation count             : 6
 
 ## News
 
+* Released version 0.3.3, which allows configuration of the benchmark source directory and prints more helpful output. Big thanks to [Noah Zucker](https://github.com/noahlz) for these improvements.
+
 * Released version 0.3.2, which updates the version of Criterium used (thus fixing a problem with the previous version attempting to use an incompatible one).
 
 * Released version 0.3.1, which fixes a bug that prevented `defcase` from working correctly when the argument list was not empty.
@@ -301,6 +303,7 @@ Evaluation count             : 6
 ## Contributors
 
 * [Hugo Duncan](https://github.com/hugoduncan)
+* [Noah Zucker](https://github.com/noahlz)
 
 ## License
 

@@ -5,7 +5,7 @@
   (:use [bultitude.core :only [namespaces-on-classpath]]))
 
 (defn get-benchmark-sourcepaths [project]
-  (get-in project [:perforate :source-paths] ["benchmarks/"]))
+  (get-in project [:perforate :benchmark-paths] ["benchmarks/"]))
 
 (defn benchmark-namespaces
   [project]
@@ -48,13 +48,14 @@
 
 (defn perforate
   "Run the performance tests in the perforate
-   source-paths dir (default \"benchmarks/\")."
+   benchmark-paths dir (default \"benchmarks/\")."
   [project & args]
   (let [perforate-options (:perforate project)
         environments (:environments perforate-options ::no-environments)
         has-environments (not= environments ::no-environments)
         perforate-dep (locate-perforate-in-project project)
-        perforate-profile (merge {:source-paths (get-benchmark-sourcepaths project)} 
+        perforate-profile (merge {:source-paths
+                                  (get-benchmark-sourcepaths project)}
                                  (if perforate-dep
                                    {:dependencies [perforate-dep]})
                                  (get-in project

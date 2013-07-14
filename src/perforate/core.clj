@@ -206,13 +206,13 @@
 
 (defn- print-goals [goals]
   (if (empty? goals)
-    (println (str 
+    (println (str
       "WARNING: No goals found!\n"
-      "Did you place your benchmark sources under \"benchmarks/\" " 
+      "Did you place your benchmark sources under \"benchmarks/\" "
       "or configure an alternate location as below?\n\n"
-      "   {:perforate {:source-paths [\"src/main/bench/\"]}}\n\n"))
-    (println (apply str 
-      "Perforating the following goals: \n" 
+      "   {:perforate {:benchmark-paths [\"src/main/bench/\"]}}\n\n"))
+    (println (apply str
+      "Benchmarking the following goals: \n"
       (->> goals (map #(-> % meta :name)) (sort) (interpose "\n"))))))
 
 (defn run-benchmarks

@@ -1,4 +1,4 @@
-(defproject perforate "0.3.4"
+(defproject perforate "0.3.5-SNAPSHOT"
   :description "Painless benchmarking with Leiningen."
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [criterium "0.4.1"]

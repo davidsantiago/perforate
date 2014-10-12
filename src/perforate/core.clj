@@ -240,12 +240,13 @@
                       (for [goal goals]
                         (let [setup-return (if (:setup @goal)
                                              ((:setup @goal)))
-                              case-results (for [case (get goal-case-map goal)]
-                                             (let [res (run-benchmark
-                                                        case
-                                                        setup-return
-                                                        options-map)]
-                                               [case res]))]
+                              case-results (doall (for [case (get goal-case-map
+                                                                  goal)]
+                                                    (let [res (run-benchmark
+                                                                case
+                                                                setup-return
+                                                                options-map)]
+                                                      [case res])))]
                           (when (:cleanup @goal)
                             (apply (:cleanup @goal) setup-return))
                           case-results))))

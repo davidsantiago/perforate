@@ -197,8 +197,8 @@ Suppose the project map contains the following keys:
 
 ```
 :dependencies [[org.clojure/clojure "1.3.0"]
-               [perforate "0.3.3"]]
-  :plugins [[perforate "0.3.3"]]
+               [perforate "0.3.4"]]
+  :plugins [[perforate "0.3.4"]]
   :profiles {:current {:source-paths ["src/"]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
@@ -276,6 +276,8 @@ Evaluation count             : 6
 ```
 
 ## News
+
+* Released version 0.3.4, which fixes a bug that caused goal cleanup to run before the rest of the cases. Thanks to [Martin Harrigan](https://github.com/harrigan) for this fix.
 
 * Released version 0.3.3, which allows configuration of the benchmark source directory and prints more helpful output. Big thanks to [Noah Zucker](https://github.com/noahlz) for these improvements.
 

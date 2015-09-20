@@ -35,7 +35,7 @@ The `perforate.core` namespace defines functions and macros that make
 it easy to define goals and cases. For example, suppose there is a file
 in benchmarks/myproject/simple_bench.clj:
 
-```
+```clj
 (ns myproject.simple-bench
   (:use perforate.core))
   
@@ -68,7 +68,7 @@ sequence of symbols naming the namespaces to run. You can also add a
 `:name` key to give each environment a name. For example, suppose the
 project.clj file contains the following:
 
-```
+```clj
 :perforate {:environments [{:name :a1b1
                             :profiles [:a1 :b1]
                             :namespaces [myproject.simple-bench myproject.complex-bench]}
@@ -106,7 +106,7 @@ of the tasks being tested or the setup phase itself. You can specify a
 function to run as a setup (or cleanup) phase by passing it as an
 argument to `defgoal`:
 
-```
+```clj
 (defgoal simple-with-setup "A benchmark with a setup phase."
    :setup (fn [] ...do stuff... [1 2 3])
    :cleanup (fn [a b c] ...do stuff...)
@@ -122,14 +122,14 @@ benchmark function. Thus, it must have a matching set of arguments in
 the `defcase` arglists, as shown in the following `defcase` for
 `simple-with-setup`:
 
-```
+```clj
 (defcase simple-with-setup :default
   [a b c] (+ a b c))
 ```
 
 Starting in version 0.3.0, you can also specify clojure.test-style fixtures in your perforate options. Fixtures are useful for setup work that is specific to an environment and not necessarily a goal. For example, your perforate options might look like
 
-```
+```clj
 {:environments
   [{:name :array
     :namespaces [myproject.implementation]
@@ -144,7 +144,7 @@ Starting in version 0.3.0, you can also specify clojure.test-style fixtures in y
 
 In this example, the same exact tests are run (those in the namespace myproject.implementation), but the fixtures such as `with-array` could be something that swaps out the implementation used, as in 
 
-```
+```clj
 (defn with-array [f] 
   (with-redefs [myproject.core/execute-expr-core execute-expr-core-with-array] 
     (f)))
@@ -173,7 +173,7 @@ the function be benchmarked; if there is a second function, it is a
 case-specific cleanup function that will be called when that case is
 done being measured. Here is the `simple-with-setup` example as a `defcase*`:
 
-```
+```clj
 (defcase* simple-with-setup :default2
   (fn [a b c] [(fn [] (+ a b c))]))
 ```
@@ -184,7 +184,7 @@ should turn into something quite like this `defcase*` version. The
 main interest in `defcase*` is if there is some case-specific setup or
 cleanup. An example might be
 
-```
+```clj
 (defcase* simple-with-setup :case-setup
   (fn [a b c] 
     (let [d (* a b c)]
@@ -195,7 +195,7 @@ cleanup. An example might be
 
 Suppose the project map contains the following keys:
 
-```
+```clj
 :dependencies [[org.clojure/clojure "1.3.0"]
                [perforate "0.3.4"]]
   :plugins [[perforate "0.3.4"]]
